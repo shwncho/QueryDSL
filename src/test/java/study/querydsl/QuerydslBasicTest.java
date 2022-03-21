@@ -1,7 +1,9 @@
 package study.querydsl;
 
 
+import com.fasterxml.jackson.databind.deser.std.StdKeyDeserializer;
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static study.querydsl.entity.QTeam.team;
 
 @SpringBootTest
 @Transactional
@@ -171,6 +174,79 @@ public class QuerydslBasicTest {
         assertThat(member5.getUsername()).isEqualTo("member5");
         assertThat(member6.getUsername()).isEqualTo("member6");
         assertThat(memberNull.getUsername()).isNull();
+
+    }
+
+    @Test
+    public void paging1(){
+        QMember m = QMember.member;
+        List<Member> result = queryFactory
+                .selectFrom(m)
+                .orderBy(m.username.desc())
+                .offset(1)
+                .limit(2)
+                .fetch();
+
+        assertThat(result.size()).isEqualTo(2);
+    }
+
+    @Test
+    public void paging2(){
+        QMember m = QMember.member;
+        QueryResults<Member> queryResults = queryFactory
+                .selectFrom(m)
+                .orderBy(m.username.desc())
+                .offset(1)
+                .limit(2)
+                .fetchResults();
+
+        assertThat(queryResults.getTotal()).isEqualTo(4);
+        assertThat(queryResults.getLimit()).isEqualTo(2);
+        assertThat(queryResults.getOffset()).isEqualTo(1);
+        assertThat(queryResults.getResults().size()).isEqualTo(2);
+    }
+
+    @Test
+    public void aggregation(){
+        QMember m = QMember.member;
+        List<Tuple> result = queryFactory
+                .select(
+                        m.count(),
+                        m.age.sum(),
+                        m.age.avg(),
+                        m.age.max(),
+                        m.age.min()
+                )
+                .from(m)
+                .fetch();
+        Tuple tuple = result.get(0);
+        assertThat(tuple.get(m.count())).isEqualTo(4);
+        assertThat(tuple.get(m.age.sum())).isEqualTo(100);
+        assertThat(tuple.get(m.age.avg())).isEqualTo(25);
+        assertThat(tuple.get(m.age.max())).isEqualTo(40);
+        assertThat(tuple.get(m.age.min())).isEqualTo(10);
+
+    }
+
+    /**
+     * 팀의 이름과 각 팀의 평균 연령을 구해라
+     */
+    @Test
+    public void group() throws Exception {
+        QMember m = QMember.member;
+        List<Tuple> result = queryFactory
+                .select(team.name, m.age.avg())
+                .from(m)
+                .join(m.team, team)
+                .groupBy(team.name)
+                .fetch();
+        Tuple teamA = result.get(0);
+        Tuple teamB = result.get(1);
+
+        assertThat(teamA.get(team.name)).isEqualTo("teamA");
+        assertThat(teamA.get(m.age.avg())).isEqualTo(15);
+        assertThat(teamB.get(team.name)).isEqualTo("teamB");
+        assertThat(teamB.get(m.age.avg())).isEqualTo(35);
 
     }
 
