@@ -1,6 +1,7 @@
 package study.querydsl;
 
 
+import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,4 +109,40 @@ public class QuerydslBasicTest {
 
         assertThat(findMember.getUsername()).isEqualTo("member1");
     }
+
+    @Test
+    public void resultFetch(){
+        QMember m = QMember.member;
+//        List<Member> fetch = queryFactory
+//                .selectFrom(m)
+//                .fetch();
+//
+//        Member fetchOne = queryFactory
+//                .selectFrom(m)
+//                .fetchOne();
+//
+//        Member fetchFirst = queryFactory
+//                .selectFrom(m)
+//                .fetchFirst();
+
+        QueryResults<Member> results = queryFactory
+                .selectFrom(m)
+                .fetchResults();
+        results.getTotal();
+        List<Member> content = results.getResults();
+
+
+    }
+
+    @Test
+    public void count(){
+        QMember m = QMember.member;
+        Long totalCount = queryFactory
+                .select(m.count())
+                .from(m)
+                .fetchOne();
+
+        System.out.println("totalCount = " + totalCount);
+    }
+
 }
