@@ -74,8 +74,8 @@ public class MemberJpaRepository {
             builder.and(member.username.eq(condition.getUsername()));
         }
 
-        if(hasText(condition.getTeamname())){
-            builder.and(team.name.eq(condition.getTeamname()));
+        if(hasText(condition.getTeamName())){
+            builder.and(team.name.eq(condition.getTeamName()));
         }
 
         if(condition.getAgeGoe() !=null){
@@ -108,7 +108,7 @@ public class MemberJpaRepository {
                 .from(member)
                 .leftJoin(member.team,team)
                 .where(userNameEq(condition.getUsername()),
-                        teamNameEq(condition.getTeamname()),
+                        teamNameEq(condition.getTeamName()),
                         ageGoe(condition.getAgeGoe()),
                         ageLoe(condition.getAgeLoe())
                 )
@@ -119,8 +119,8 @@ public class MemberJpaRepository {
         return hasText(username) ? member.username.eq(username) : null;
     }
 
-    private BooleanExpression teamNameEq(String teamname) {
-        return hasText(teamname) ? team.name.eq(teamname) : null;
+    private BooleanExpression teamNameEq(String teamName) {
+        return hasText(teamName) ? team.name.eq(teamName) : null;
     }
 
     private BooleanExpression ageGoe(Integer ageGoe) {
